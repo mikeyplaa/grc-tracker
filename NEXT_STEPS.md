@@ -11,9 +11,9 @@
 - [x] List/detail view of controls, grouped by theme
 
 ## Phase 2 — Evidence + status updates
-- [ ] Update control status (UI + endpoint)
-- [ ] Attach evidence to a control (file upload or link), set review-due date
-- [ ] Stale-evidence detection logic
+- [x] Update control status (UI + endpoint)
+- [x] Attach evidence to a control (file upload or link), set review-due date
+- [x] Stale-evidence detection logic
 
 ## Phase 3 — Scoring + dashboard
 - [ ] Scoring calculation (overall + by theme)
@@ -78,6 +78,30 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   `/controls/A.5.1`, and a 404 case — all correct; also checked the rendered
   HTML groups controls into the right theme counts (37/8/14/34) and sorts
   numerically within each theme.
-- Phase 1 is now fully complete. Next up: Phase 2 — update control status
-  (UI + endpoint), attach evidence to a control (file upload or link) with a
-  review-due date, and stale-evidence detection logic.
+- Phase 1 is now fully complete.
+- Phase 2 complete:
+  - `POST /controls/{id}/status` updates a control's status from a `<select>`
+    on the detail page (redirects back to the detail page, 303).
+  - `POST /controls/{id}/evidence` attaches evidence via either a link (`url`
+    form field) or a file upload, plus an optional `review_due` date. Uploaded
+    files are saved under `data/evidence/{control_id}_{filename}` (filename
+    sanitized to its basename to avoid path traversal); this directory rides
+    along in the same `./data` Docker volume as the SQLite file, so it
+    persists across container restarts. Requires exactly one of file/url —
+    400s if neither is given. Added `python-multipart` to requirements.txt
+    (required by FastAPI for form/file parsing).
+  - Stale-evidence detection: `Evidence.is_stale` (review_due in the past)
+    and `Control.has_stale_evidence` (any stale evidence) are plain Python
+    properties, not DB columns — cheap to compute at this scale (93 controls,
+    a handful of evidence items each), no need for a query-level flag yet.
+    Surfaced in the UI as a "Stale" badge on the evidence row and a "Stale
+    evidence" badge next to the control's status.
+  - `data/evidence/` is gitignored (uploaded files are user data, like the
+    SQLite db).
+  - Verified end-to-end: status update via curl, evidence-by-link with a
+    past review_due (renders as stale), evidence-by-file-upload with a
+    future review_due (renders as fresh), and the 400 case with neither
+    file nor url provided.
+- Next up: Phase 3 — scoring calculation (overall + by theme), on-demand
+  ScoreSnapshot history, and the dashboard (score, theme chart, trend line,
+  gaps/stale list).

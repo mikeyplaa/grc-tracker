@@ -9,7 +9,10 @@
     <dt>Title</dt>
     <dd>{{ control.title }}</dd>
     <dt>Status</dt>
-    <dd><span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span></dd>
+    <dd>
+      <span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span>
+      {% if control.has_stale_evidence %}<span class="badge stale">Stale evidence</span>{% endif %}
+    </dd>
     <dt>Description</dt>
     <dd>{{ control.description }}</dd>
     <dt>Owner note</dt>
@@ -17,6 +20,16 @@
     <dt>Last reviewed</dt>
     <dd>{{ control.last_reviewed or "Never" }}</dd>
   </div>
+
+  <form class="panel" method="post" action="/controls/{{ control.id }}/status">
+    <label for="status">Update status</label><br>
+    <select id="status" name="status">
+      {% for option in statuses %}
+        <option value="{{ option.value }}" {% if option == control.status %}selected{% endif %}>{{ option.value }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Save</button>
+  </form>
 
   <h2>Evidence ({{ control.evidence|length }})</h2>
   {% if control.evidence %}
@@ -30,7 +43,10 @@
             <td>{{ item.title }}</td>
             <td>{{ item.file_path_or_url }}</td>
             <td>{{ item.uploaded_at.date() }}</td>
-            <td>{{ item.review_due or "—" }}</td>
+            <td>
+              {{ item.review_due or "—" }}
+              {% if item.is_stale %}<span class="badge stale">Stale</span>{% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
@@ -38,4 +54,16 @@
   {% else %}
     <p class="empty">No evidence attached yet.</p>
   {% endif %}
+
+  <form class="panel" method="post" action="/controls/{{ control.id }}/evidence" enctype="multipart/form-data">
+    <label for="title">Title</label><br>
+    <input id="title" name="title" type="text" required><br><br>
+    <label for="url">Link (leave blank if uploading a file)</label><br>
+    <input id="url" name="url" type="text" placeholder="https://..."><br><br>
+    <label for="file">Or upload a file</label><br>
+    <input id="file" name="file" type="file"><br><br>
+    <label for="review_due">Review due</label><br>
+    <input id="review_due" name="review_due" type="date"><br><br>
+    <button type="submit">Add evidence</button>
+  </form>
 {% endblock %}
