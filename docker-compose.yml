@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/code/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/grc_tracker.db
