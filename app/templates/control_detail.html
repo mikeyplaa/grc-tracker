@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ control.id }} · GRC Tracker{% endblock %}
+{% block content %}
+  <a class="back-link" href="/controls">&larr; All controls</a>
+  <h2>{{ control.theme.value }}</h2>
+  <div class="panel">
+    <dt>ID</dt>
+    <dd>{{ control.id }}</dd>
+    <dt>Title</dt>
+    <dd>{{ control.title }}</dd>
+    <dt>Status</dt>
+    <dd><span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span></dd>
+    <dt>Description</dt>
+    <dd>{{ control.description }}</dd>
+    <dt>Owner note</dt>
+    <dd>{{ control.owner_note or "—" }}</dd>
+    <dt>Last reviewed</dt>
+    <dd>{{ control.last_reviewed or "Never" }}</dd>
+  </div>
+
+  <h2>Evidence ({{ control.evidence|length }})</h2>
+  {% if control.evidence %}
+    <table>
+      <thead>
+        <tr><th>Title</th><th>Location</th><th>Uploaded</th><th>Review due</th></tr>
+      </thead>
+      <tbody>
+        {% for item in control.evidence %}
+          <tr>
+            <td>{{ item.title }}</td>
+            <td>{{ item.file_path_or_url }}</td>
+            <td>{{ item.uploaded_at.date() }}</td>
+            <td>{{ item.review_due or "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No evidence attached yet.</p>
+  {% endif %}
+{% endblock %}
