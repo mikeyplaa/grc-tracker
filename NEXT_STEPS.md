@@ -21,9 +21,9 @@
 - [x] Dashboard: overall score, theme breakdown chart, trend line, gaps list
 
 ## Phase 4 — Export + polish
-- [ ] Markdown/PDF summary export
-- [ ] Basic styling pass — this doubles as a portfolio piece, so make it look sharp
-- [ ] Deploy to Proxmox lab via docker-compose
+- [x] Markdown/PDF summary export
+- [x] Basic styling pass — this doubles as a portfolio piece, so make it look sharp
+- [ ] Deploy to Proxmox lab via docker-compose (needs Mike's lab access — see notes)
 
 ## Phase 5 — Stretch (post-MVP)
 - [ ] Second framework support (SOC 2?) using the same control/evidence model
@@ -120,9 +120,9 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     Progress controls, most-urgent-first), and a stale-evidence list sorted
     by how overdue the review is. Added "Controls / Dashboard" nav in the
     header.
-  - Charts use Chart.js from the jsdelivr CDN (matches CLAUDE.md's
-    "Chart.js or similar, kept lightweight" suggestion) — self-hosting it
-    is a trivial swap later if the lab needs to run fully offline.
+  - Charts use Chart.js (matches CLAUDE.md's "Chart.js or similar, kept
+    lightweight" suggestion); see Phase 4 notes below — ended up vendoring
+    it locally rather than loading from a CDN.
   - Added a `tojson` Jinja filter (`app/templating.py`) since plain Jinja2
     (unlike Flask) doesn't ship one; wrapped its output in `markupsafe.Markup`
     so the JSON isn't HTML-escaped inside `<script>` tags — caught this by
@@ -137,5 +137,58 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     the right numbers.
 - Phase 3 is now fully complete — this closes out the MVP core loop (Framework
   → Control record → Evidence → Scoring → Dashboard) from CLAUDE.md.
-  Next up: Phase 4 — Markdown/PDF export, a real styling pass, and deploying
-  to the Proxmox lab via docker-compose.
+- Phase 4 (export + styling) complete; deployment to the actual Proxmox lab
+  is not (see below — needs Mike's lab access, which this session doesn't have).
+  - **Export**: `app/reporting.py` factors the shared "gather dashboard data"
+    logic (`build_report(db)`) out of `dashboard.py` so both the dashboard and
+    the new export routes use one source of truth. `app/routers/export.py`
+    adds `GET /export/markdown` (plain-text summary, `Content-Disposition:
+    attachment`) and `GET /export/pdf` (same content via `fpdf2`). Added
+    `fpdf2` to requirements.txt — flagging this as a new dependency per the
+    working agreement: chose it because it's pure-Python with no system-level
+    deps (unlike e.g. WeasyPrint, which needs Cairo/Pango and would complicate
+    the Docker image). Hit and fixed a real bug while building this: fpdf2's
+    `multi_cell()` leaves the cursor at the right margin by default, so a
+    second call computed negative available width and threw
+    `FPDFException: Not enough horizontal space` — fixed by passing
+    `new_x="LMARGIN", new_y="NEXT"` explicitly, same as the `cell()` calls.
+    Sent Mike sample `.md`/`.pdf` output to review.
+  - **Styling pass**: dark theme polish — shield emoji favicon, a
+    Controls/Dashboard nav with active-state highlighting, a footer, subtle
+    panel shadows, and export buttons on the dashboard. Verified visually
+    with Playwright screenshots of `/controls`, `/controls/A.5.1`, and
+    `/dashboard` (not just curl/HTTP-status checks) since this is a UI change.
+  - **Chart.js delivery change**: the dashboard originally loaded Chart.js
+    from the jsdelivr CDN (Phase 3). Screenshotting the dashboard surfaced
+    that the charts were blank — this sandbox's network policy blocks that
+    CDN outright, and more importantly, relying on an external CDN is a real
+    fragility for a tool meant to run on a segmented home-lab network where
+    a browser might not have general internet egress. Vendored Chart.js
+    instead: fetched `chart.js@4.4.4`'s UMD build via npm (registry.npmjs.org
+    was reachable), copied it to `app/static/vendor/chart.umd.js` (MIT
+    license file alongside it), mounted `/static` via FastAPI's
+    `StaticFiles`, and pointed the dashboard's `<script>` tag at the local
+    copy. Re-verified with Playwright: no console/page errors, both charts
+    render. No new Python dependency — just a vendored static asset.
+  - **Auto-seed on startup**: since `seed_controls()` is idempotent
+    (upserts, skips existing ids), wired it into the FastAPI startup event
+    alongside `Base.metadata.create_all`. A fresh deploy now has all 93
+    controls immediately — no manual `python -m app.seed` step needed on
+    first boot, and it's a safe no-op on every restart after that.
+  - **Deployment to Proxmox — not done, and here's exactly why**: this
+    session has no access to Mike's actual Proxmox host, and this sandbox
+    has no Docker daemon available either (`docker version` connects fine
+    but `no such file or directory` on the daemon socket), so `docker build`
+    / `docker compose up` were never literally run here. What *is* verified:
+    the app boots and behaves correctly under the same install command
+    (`pip install -r requirements.txt`) and run command
+    (`uvicorn app.main:app`) the Dockerfile uses, and `docker/Dockerfile`'s
+    `COPY app ./app` correctly picks up the new `app/static/` directory (no
+    Dockerfile changes were needed). To actually deploy: on the Proxmox host,
+    clone the repo and run `docker compose up --build -d`, then confirm
+    `/health` and `/dashboard` respond. Leaving the NEXT_STEPS checkbox
+    unticked until that's actually been run on real hardware.
+- MVP scope (Phases 0–4) is functionally complete pending that one real
+  deployment step. Phase 5 (stretch, post-MVP) remains optional: second
+  framework support, simple auth, manual "connector" checklists — none of
+  it blocks calling this a working v1.
