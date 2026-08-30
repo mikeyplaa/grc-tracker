@@ -6,7 +6,7 @@
 - [x] Basic FastAPI app boots, health check route
 
 ## Phase 1 — Controls (read-only)
-- [ ] Control + Evidence + ScoreSnapshot models (SQLAlchemy)
+- [x] Control + Evidence + ScoreSnapshot models (SQLAlchemy)
 - [ ] Seed script loading ISO 27001:2022 Annex A controls into DB
 - [ ] List/detail view of controls, grouped by theme
 
@@ -42,5 +42,15 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   volume for the SQLite file. Run with `docker compose up --build`.
 - Local run without Docker: `pip install -r requirements.txt && uvicorn app.main:app --reload`.
 - Verified `/health` returns 200 locally (see below).
-- Next up: Phase 1 — SQLAlchemy models for Control/Evidence/ScoreSnapshot and the
-  ISO 27001:2022 Annex A seed data.
+- Phase 1 models complete: `app/db.py` sets up the SQLAlchemy engine/session
+  (`SessionLocal`, `get_db` dependency) and declarative `Base`. Models live under
+  `app/models/`: `Control` (theme/status enums, `owner_note`, `last_reviewed`),
+  `Evidence` (FK to `Control`, `uploaded_at` server-default timestamp, `review_due`),
+  and `ScoreSnapshot` (`overall_score` float, `theme_scores` JSON dict).
+  `app/main.py` creates tables on startup via `Base.metadata.create_all` — no
+  migrations tool yet (SQLite, single-user, MVP); revisit with Alembic if the
+  schema needs versioned migrations later.
+- Verified with a TestClient round-trip: inserted a Control + linked Evidence +
+  a ScoreSnapshot, confirmed the relationship and JSON column read back correctly.
+- Next up: seed script loading the ISO 27001:2022 Annex A controls, then the
+  read-only list/detail view grouped by theme.
