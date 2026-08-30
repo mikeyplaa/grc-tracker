@@ -16,9 +16,9 @@
 - [x] Stale-evidence detection logic
 
 ## Phase 3 — Scoring + dashboard
-- [ ] Scoring calculation (overall + by theme)
-- [ ] Snapshot-on-demand (or scheduled) to populate ScoreSnapshot history
-- [ ] Dashboard: overall score, theme breakdown chart, trend line, gaps list
+- [x] Scoring calculation (overall + by theme)
+- [x] Snapshot-on-demand (or scheduled) to populate ScoreSnapshot history
+- [x] Dashboard: overall score, theme breakdown chart, trend line, gaps list
 
 ## Phase 4 — Export + polish
 - [ ] Markdown/PDF summary export
@@ -102,6 +102,40 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     past review_due (renders as stale), evidence-by-file-upload with a
     future review_due (renders as fresh), and the 400 case with neither
     file nor url provided.
-- Next up: Phase 3 — scoring calculation (overall + by theme), on-demand
-  ScoreSnapshot history, and the dashboard (score, theme chart, trend line,
-  gaps/stale list).
+- Phase 2 is now fully complete.
+- Phase 3 complete:
+  - `app/scoring.py`: `effective_score(control)` maps status to the weights
+    from CLAUDE.md (Not Started=0, In Progress=0.33, Implemented=0.66,
+    Evidenced=1.0), dropping one tier if `control.has_stale_evidence` is
+    true (stale evidence pulls the effective score down, per the brief).
+    `compute_scores(controls)` returns `(overall, {theme: score})`, each a
+    plain mean of effective scores (0..1).
+  - `POST /dashboard/snapshot`: computes current scores and inserts a
+    `ScoreSnapshot` row (on-demand, no scheduler — fits the single-user
+    home-lab use case; a cron/scheduled option is easy to bolt on later
+    if wanted).
+  - `GET /dashboard`: overall score (big number), a theme-breakdown bar
+    chart, a score-over-time trend line (hidden with an empty-state message
+    until at least one snapshot exists), a gaps list (Not Started/In
+    Progress controls, most-urgent-first), and a stale-evidence list sorted
+    by how overdue the review is. Added "Controls / Dashboard" nav in the
+    header.
+  - Charts use Chart.js from the jsdelivr CDN (matches CLAUDE.md's
+    "Chart.js or similar, kept lightweight" suggestion) — self-hosting it
+    is a trivial swap later if the lab needs to run fully offline.
+  - Added a `tojson` Jinja filter (`app/templating.py`) since plain Jinja2
+    (unlike Flask) doesn't ship one; wrapped its output in `markupsafe.Markup`
+    so the JSON isn't HTML-escaped inside `<script>` tags — caught this by
+    inspecting the rendered page (autoescaping turned `"` into `&#34;`,
+    which would have broken the chart JS in a real browser). Added
+    `markupsafe` to requirements.txt as an explicit dependency since we
+    import it directly.
+  - Verified end-to-end: seeded 93 controls, set a few statuses, confirmed
+    the computed overall/theme scores match hand-calculated values, took a
+    snapshot, and confirmed the rendered chart data (`themeLabels`,
+    `themeData`, `trendLabels`, `trendData`) is valid unescaped JSON with
+    the right numbers.
+- Phase 3 is now fully complete — this closes out the MVP core loop (Framework
+  → Control record → Evidence → Scoring → Dashboard) from CLAUDE.md.
+  Next up: Phase 4 — Markdown/PDF export, a real styling pass, and deploying
+  to the Proxmox lab via docker-compose.
