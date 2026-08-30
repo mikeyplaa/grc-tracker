@@ -8,7 +8,7 @@
 ## Phase 1 — Controls (read-only)
 - [x] Control + Evidence + ScoreSnapshot models (SQLAlchemy)
 - [x] Seed script loading ISO 27001:2022 Annex A controls into DB
-- [ ] List/detail view of controls, grouped by theme
+- [x] List/detail view of controls, grouped by theme
 
 ## Phase 2 — Evidence + status updates
 - [ ] Update control status (UI + endpoint)
@@ -65,4 +65,19 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   copyright concerns anyway. If you want exact wording for the portfolio
   artifact, swap in text from your licensed copy of the standard; the schema
   doesn't care which you use.
-- Next up: read-only list/detail view of controls, grouped by theme.
+- Phase 1 complete: added server-rendered Jinja2 views. `app/templating.py`
+  holds the shared `Jinja2Templates` instance; `app/routers/controls.py`
+  serves `GET /controls` (all controls grouped by theme, in Annex A order,
+  numerically sorted within each theme — e.g. A.5.9 before A.5.10) and
+  `GET /controls/{id}` (detail page with status badge, description, owner
+  note, last-reviewed date, and any attached evidence — 404s on unknown ids).
+  `GET /` redirects to `/controls`. Kept styling to a single inline `<style>`
+  block in `app/templates/base.html` rather than a static-files mount; the
+  real styling pass is scheduled for Phase 4 per the plan.
+  Verified by booting the app, seeding, and curling `/`, `/controls`,
+  `/controls/A.5.1`, and a 404 case — all correct; also checked the rendered
+  HTML groups controls into the right theme counts (37/8/14/34) and sorts
+  numerically within each theme.
+- Phase 1 is now fully complete. Next up: Phase 2 — update control status
+  (UI + endpoint), attach evidence to a control (file upload or link) with a
+  review-due date, and stale-evidence detection logic.
