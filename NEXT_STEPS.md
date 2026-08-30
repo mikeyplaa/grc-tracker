@@ -7,7 +7,7 @@
 
 ## Phase 1 — Controls (read-only)
 - [x] Control + Evidence + ScoreSnapshot models (SQLAlchemy)
-- [ ] Seed script loading ISO 27001:2022 Annex A controls into DB
+- [x] Seed script loading ISO 27001:2022 Annex A controls into DB
 - [ ] List/detail view of controls, grouped by theme
 
 ## Phase 2 — Evidence + status updates
@@ -52,5 +52,17 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   schema needs versioned migrations later.
 - Verified with a TestClient round-trip: inserted a Control + linked Evidence +
   a ScoreSnapshot, confirmed the relationship and JSON column read back correctly.
-- Next up: seed script loading the ISO 27001:2022 Annex A controls, then the
-  read-only list/detail view grouped by theme.
+- Seed script complete: `data/iso27001_2022_annex_a.json` holds all 93 ISO
+  27001:2022 Annex A controls (37 Organizational, 8 People, 14 Physical,
+  34 Technological — verified counts and sequential numbering programmatically).
+  `app/seed.py` (`python -m app.seed`) upserts them into the `controls` table,
+  skipping any `id` already present, so it's safe to re-run.
+  **Flag for Mike**: the `id`/`theme`/`title` fields are the official Annex A
+  reference labels (widely published, high confidence). The `description`
+  field is a short paraphrase in my own words, not the verbatim ISO standard
+  text — I don't have the copyrighted control wording memorized reliably
+  enough to reproduce it exactly, and reproducing it verbatim would raise
+  copyright concerns anyway. If you want exact wording for the portfolio
+  artifact, swap in text from your licensed copy of the standard; the schema
+  doesn't care which you use.
+- Next up: read-only list/detail view of controls, grouped by theme.
