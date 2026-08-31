@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><text y=%2213%22 font-size=%2214%22>🛡️</text></svg>">
   <title>{% block title %}GRC Tracker{% endblock %}</title>
   <style>
     :root {
@@ -20,9 +21,12 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     header {
       padding: 1.25rem 2rem;
@@ -32,12 +36,16 @@
       gap: 0.75rem;
     }
     header a { color: var(--text); text-decoration: none; }
-    header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; }
+    header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
     header .tagline { color: var(--muted); font-size: 0.85rem; }
     header nav { margin-left: auto; display: flex; gap: 1.25rem; }
-    header nav a { color: var(--muted); font-size: 0.85rem; }
+    header nav a { color: var(--muted); font-size: 0.85rem; transition: color 0.15s; }
     header nav a:hover, header nav a.active { color: var(--text); }
-    main { padding: 1.5rem 2rem 3rem; max-width: 1000px; margin: 0 auto; }
+    main { padding: 1.5rem 2rem 3rem; max-width: 1000px; margin: 0 auto; width: 100%; flex: 1; }
+    footer {
+      padding: 1.25rem 2rem; border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 0.8rem; text-align: center;
+    }
     h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 2rem 0 0.75rem; }
     h2:first-child { margin-top: 0; }
     table { width: 100%; border-collapse: collapse; }
@@ -46,6 +54,12 @@
     tr:hover td { background: var(--panel); }
     a.control-link { color: var(--accent); text-decoration: none; }
     a.control-link:hover { text-decoration: underline; }
+    a.button-link {
+      display: inline-block; color: var(--text); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.45rem 0.9rem; font-size: 0.85rem; transition: border-color 0.15s;
+    }
+    a.button-link:hover { border-color: var(--accent); }
     .badge {
       display: inline-block;
       padding: 0.15rem 0.55rem;
@@ -62,7 +76,10 @@
     .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
     .back-link { display: inline-block; margin-bottom: 1rem; color: var(--muted); text-decoration: none; font-size: 0.85rem; }
     .back-link:hover { color: var(--text); }
-    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
     .panel dt { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 0.9rem; }
     .panel dt:first-child { margin-top: 0; }
     .panel dd { margin: 0.25rem 0 0; }
@@ -82,23 +99,27 @@
     .score-sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.35rem; }
     .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     @media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
-    .chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .chart-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
     .chart-card h3 { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
     canvas { max-width: 100%; }
   </style>
 </head>
 <body>
   <header>
-    <a href="/controls"><h1>GRC Tracker</h1></a>
+    <a href="/controls"><h1>🛡️ GRC Tracker</h1></a>
     <span class="tagline">ISO 27001:2022 Annex A</span>
     <nav>
-      <a href="/controls">Controls</a>
-      <a href="/dashboard">Dashboard</a>
+      <a href="/controls" class="{{ 'active' if request.url.path.startswith('/controls') else '' }}">Controls</a>
+      <a href="/dashboard" class="{{ 'active' if request.url.path.startswith('/dashboard') else '' }}">Dashboard</a>
     </nav>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
+  <footer>Personal GRC / Compliance Tracker &middot; ISO 27001:2022 Annex A</footer>
   {% block scripts %}{% endblock %}
 </body>
 </html>

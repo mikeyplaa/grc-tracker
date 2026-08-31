@@ -6,9 +6,13 @@
       <div class="score-hero">{{ (overall * 100)|round|int }}%</div>
       <div class="score-sub">Across {{ total_controls }} controls · {{ gaps|length }} gaps · {{ stale_items|length }} stale evidence items</div>
     </div>
-    <form method="post" action="/dashboard/snapshot">
-      <button type="submit">Take snapshot</button>
-    </form>
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <a class="button-link" href="/export/markdown">Export Markdown</a>
+      <a class="button-link" href="/export/pdf">Export PDF</a>
+      <form method="post" action="/dashboard/snapshot">
+        <button type="submit">Take snapshot</button>
+      </form>
+    </div>
   </div>
 
   <div class="chart-grid">
@@ -65,7 +69,7 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/static/vendor/chart.umd.js"></script>
   <script>
     const themeLabels = {{ theme_scores.keys()|list|tojson }};
     const themeData = {{ (theme_scores.values()|list)|tojson }}.map(v => Math.round(v * 100));
