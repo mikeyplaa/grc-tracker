@@ -9,3 +9,6 @@ services:
       - ./data:/code/data
     environment:
       - DATABASE_URL=sqlite:///./data/grc_tracker.db
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY:-}

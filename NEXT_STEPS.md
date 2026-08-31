@@ -26,8 +26,8 @@
 - [ ] Deploy to Proxmox lab via docker-compose (needs Mike's lab access — see notes)
 
 ## Phase 5 — Stretch (post-MVP)
-- [ ] Second framework support (SOC 2?) using the same control/evidence model
-- [ ] Simple auth (single local login) if exposing beyond the lab network
+- [ ] Second framework support (deferred — Mike wants to specify which framework separately)
+- [x] Simple auth (single local login) if exposing beyond the lab network
 - [ ] Manual "connector" style checklist prompts (poor-man's automated evidence)
 
 ---
@@ -192,3 +192,54 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   deployment step. Phase 5 (stretch, post-MVP) remains optional: second
   framework support, simple auth, manual "connector" checklists — none of
   it blocks calling this a working v1.
+- **Phase 5 — simple auth complete.** Asked Mike which Phase 5 items to
+  build (per CLAUDE.md's "ask before adding an auth layer") and which auth
+  mechanism; he chose a login form + session cookie over HTTP Basic, and
+  deferred the second-framework item to specify separately later.
+  - `app/auth.py`: `require_login` dependency (redirects to
+    `/login?next=<path>` via a 303 + `Location` header on `HTTPException`
+    — no custom exception handler needed, FastAPI's default one forwards
+    the header and browsers follow the redirect regardless of body).
+    `verify_credentials` uses `secrets.compare_digest` for constant-time
+    comparison. `safe_next_path` rejects protocol-relative (`//host/...`)
+    values to close an open-redirect path through the `next` param.
+  - `app/routers/auth.py` + `app/templates/login.html`: `GET/POST /login`,
+    `GET /logout`. Wrong credentials re-render the form with a 401 and an
+    error message rather than redirecting.
+  - `app/core/config.py`: added `auth_username`/`auth_password` (env vars,
+    default `admin`/`changeme`) and `session_secret_key` (random via
+    `secrets.token_hex(32)` if unset). Added a `field_validator` so an env
+    var explicitly set to `""` (e.g. an unset `${SESSION_SECRET_KEY:-}` in
+    docker-compose) still falls back to a random secret instead of signing
+    sessions with an empty key — caught this by tracing through what
+    `docker compose config` actually resolves, not just the happy path.
+  - `SessionMiddleware` (from `starlette.middleware.sessions`, needs
+    `itsdangerous` — added to requirements.txt) wraps the app; a 14-day
+    session cookie (`grc_session`). `require_login` is applied via
+    `dependencies=[Depends(require_login)]` on `app.include_router(...)`
+    for the controls/dashboard/export routers, so no individual route
+    needed editing. `/health`, `/login`, `/static/*` stay public
+    (container healthchecks and the login page itself must stay reachable
+    unauthenticated).
+  - `base.html`'s nav is now conditional on `request.session.get('authenticated')`
+    — logged-out visitors see no Controls/Dashboard/Log out links.
+  - Added `.env.example` (`AUTH_USERNAME`, `AUTH_PASSWORD`,
+    `SESSION_SECRET_KEY`) and wired the same three vars into
+    `docker-compose.yml`'s `environment:` block via `${VAR:-default}`
+    substitution, which docker compose auto-fills from a root `.env` file.
+  - Logs a startup warning if `AUTH_PASSWORD` is still the default
+    `changeme`, so it's obvious in the logs before exposing this beyond
+    localhost.
+  - Verified end-to-end: unauthenticated request to `/controls` redirects
+    to `/login?next=/controls`; `/health` stays public; wrong password
+    returns 401 with an inline error; correct login redirects back to the
+    originally-requested `next` path; `/dashboard` and `/controls` both
+    require the session; `/logout` clears it and re-protects immediately.
+    Also verified visually with Playwright (login page renders correctly
+    unauthenticated with no nav, and lands back on `/controls` with the
+    full nav after a successful login) and validated `docker compose
+    config` resolves the new env vars correctly, including the empty-string
+    `SESSION_SECRET_KEY` edge case.
+  - **Not yet done**: second framework support and connector checklists —
+    Mike deferred the framework choice; connector checklists weren't
+    selected in this pass. Both remain open Phase 5 items.
