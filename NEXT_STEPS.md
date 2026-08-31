@@ -26,7 +26,7 @@
 - [ ] Deploy to Proxmox lab via docker-compose (needs Mike's lab access — see notes)
 
 ## Phase 5 — Stretch (post-MVP)
-- [ ] Second framework support (deferred — Mike wants to specify which framework separately)
+- [x] Second framework support (SOC 2) using the same control/evidence model
 - [x] Simple auth (single local login) if exposing beyond the lab network
 - [ ] Manual "connector" style checklist prompts (poor-man's automated evidence)
 
@@ -195,7 +195,8 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
 - **Phase 5 — simple auth complete.** Asked Mike which Phase 5 items to
   build (per CLAUDE.md's "ask before adding an auth layer") and which auth
   mechanism; he chose a login form + session cookie over HTTP Basic, and
-  deferred the second-framework item to specify separately later.
+  deferred the second-framework item to specify separately later (he then
+  came back and picked SOC 2 — see below, merged together in this commit).
   - `app/auth.py`: `require_login` dependency (redirects to
     `/login?next=<path>` via a 303 + `Location` header on `HTTPException`
     — no custom exception handler needed, FastAPI's default one forwards
@@ -240,6 +241,69 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     full nav after a successful login) and validated `docker compose
     config` resolves the new env vars correctly, including the empty-string
     `SESSION_SECRET_KEY` edge case.
-  - **Not yet done**: second framework support and connector checklists —
-    Mike deferred the framework choice; connector checklists weren't
-    selected in this pass. Both remain open Phase 5 items.
+- **Phase 5 — second framework (SOC 2) complete.** This turned out to be a
+  bigger change than "just add more seed data": the schema as originally
+  built (Phase 1) only really supported one framework — `Control.theme` was
+  a strict ISO-specific enum, and every score/gap/export computation summed
+  across *all* controls regardless of framework. Blending ISO 27001 and
+  SOC 2 controls into one "overall score" would have been actively
+  misleading, so this was a real (if modest) schema + logic generalization,
+  not a pure addition. No Alembic migration — no production data exists yet
+  (Proxmox deploy is still pending), so schema changes just apply on a fresh
+  `Base.metadata.create_all()`. **Flag**: if you've already run this
+  locally and have a `data/grc_tracker.db` with the old schema, delete it
+  before running the new code — this is the second time schema evolved
+  without a migration tool; worth adopting Alembic once real evidence data
+  exists that you'd lose by dropping the db.
+  - `Control` gains a `framework` column (`ControlFramework` enum:
+    `ISO_27001_2022` / `SOC_2`); `theme` changed from a strict ISO-only enum
+    to a plain string so each framework can use its own category vocabulary
+    (ISO's 4 themes vs. SOC 2's Trust Services Criteria categories) without
+    enum bloat. `ScoreSnapshot` also gains a `framework` column so trend
+    history is framework-scoped, not blended.
+  - `app/frameworks.py`: single source of truth for framework metadata —
+    slugs (`iso27001`/`soc2`) used in URLs, per-framework theme ordering,
+    per-framework seed file paths, and a generalized `natural_sort_key()`
+    that replaces the old ISO-specific `id.split(".")` sort (which would've
+    broken on SOC 2 IDs like `CC1.1` — regex-based digit/text-run splitting
+    handles both `A.5.9`-before-`A.5.10` and `CC1.1`-before-`CC1.2` the
+    same way).
+  - `data/soc2_2017_tsc.json`: 43 controls — the 33-criterion Security
+    ("Common Criteria" CC1–CC9, mandatory in every SOC 2 report) plus
+    Availability (3), Confidentiality (2), and Processing Integrity (5).
+    **Flag for Mike** (same policy as the ISO seed): IDs/categories/short
+    titles are high-confidence (the Common Criteria structure is extremely
+    widely published). Descriptions are my own paraphrase, not verbatim
+    AICPA TSC text — same copyright + accuracy reasoning as ISO. **Privacy
+    category deliberately omitted**: my confidence in its exact sub-criteria
+    numbering (P1.1 through P8.x) is meaningfully lower than the other four
+    categories, and it's also the least commonly scoped-in category in real
+    SOC 2 engagements — flagging rather than guessing. Add it later against
+    an official AICPA TSC document if you need full Privacy coverage.
+  - `app/seed.py` now loops `FRAMEWORK_SEED_FILES` and seeds both frameworks;
+    still idempotent, still safe to re-run, still called on app startup.
+  - Every route that touches scoring is now framework-scoped via a
+    `?framework=iso27001|soc2` query param (default `iso27001` for
+    backward-compat): `GET /controls`, `GET /dashboard`,
+    `POST /dashboard/snapshot`, `GET /export/markdown`, `GET /export/pdf`.
+    `GET /controls/{id}` and its status/evidence POSTs stay unprefixed —
+    control IDs are still globally unique (ISO's `A.N.M` vs. SOC 2's
+    `CC/A/C/PI` prefixes don't collide), so no ambiguity from dropping the
+    framework segment there.
+  - Added tab-style framework switchers (`.tabs` in `base.html`) to the
+    controls list and dashboard pages. Header tagline/footer changed from
+    the ISO-only text to a framework-neutral one.
+  - Verified end-to-end: seeded both frameworks (93 + 43 = 136 total,
+    correct per-theme counts on both sides), set statuses/evidence
+    independently on each framework and confirmed dashboards don't
+    cross-contaminate (an ISO status change doesn't move the SOC 2 score
+    and vice versa), confirmed natural sort order on SOC 2's `CC6.1`.`CC6.8`
+    run, verified snapshots are stored and read back per-framework, and
+    checked Markdown/PDF export output and headers for both frameworks.
+    Also verified visually with Playwright screenshots of the SOC 2 tab on
+    both `/controls` and `/dashboard`.
+- **Phase 5 status after merging auth (#9) and SOC 2 (#10) together**: both
+  simple auth and the second framework are now complete. The only open
+  Phase 5 item is manual "connector" style checklist prompts. Outside
+  Phase 5, the Proxmox deployment step (Phase 4) is still pending Mike's
+  lab access.

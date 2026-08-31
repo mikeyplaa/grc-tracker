@@ -60,6 +60,13 @@
       padding: 0.45rem 0.9rem; font-size: 0.85rem; transition: border-color 0.15s;
     }
     a.button-link:hover { border-color: var(--accent); }
+    .tabs { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .tabs a {
+      color: var(--muted); text-decoration: none; font-size: 0.9rem;
+      padding: 0.6rem 0.1rem; border-bottom: 2px solid transparent; transition: color 0.15s;
+    }
+    .tabs a:hover { color: var(--text); }
+    .tabs a.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
     .badge {
       display: inline-block;
       padding: 0.15rem 0.55rem;
@@ -110,7 +117,7 @@
 <body>
   <header>
     <a href="/controls"><h1>🛡️ GRC Tracker</h1></a>
-    <span class="tagline">ISO 27001:2022 Annex A</span>
+    <span class="tagline">ISO 27001:2022 &amp; SOC 2</span>
     <nav>
       {% if request.session.get('authenticated') %}
         <a href="/controls" class="{{ 'active' if request.url.path.startswith('/controls') else '' }}">Controls</a>
@@ -122,7 +129,7 @@
   <main>
     {% block content %}{% endblock %}
   </main>
-  <footer>Personal GRC / Compliance Tracker &middot; ISO 27001:2022 Annex A</footer>
+  <footer>Personal GRC / Compliance Tracker &middot; ISO 27001:2022 &amp; SOC 2</footer>
   {% block scripts %}{% endblock %}
 </body>
 </html>

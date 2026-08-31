@@ -1,4 +1,4 @@
-from app.models import Control, ControlStatus, ControlTheme
+from app.models import Control, ControlStatus
 
 STATUS_ORDER = [
     ControlStatus.NOT_STARTED,
@@ -23,11 +23,18 @@ def effective_score(control: Control) -> float:
     return STATUS_WEIGHT[STATUS_ORDER[index]]
 
 
-def compute_scores(controls: list[Control]) -> tuple[float, dict[str, float]]:
-    """Returns (overall_score, {theme: score}), each a 0..1 mean of effective_score."""
-    theme_totals: dict[str, list[float]] = {theme.value: [] for theme in ControlTheme}
+def compute_scores(
+    controls: list[Control], theme_order: list[str]
+) -> tuple[float, dict[str, float]]:
+    """Returns (overall_score, {theme: score}), each a 0..1 mean of effective_score.
+
+    `controls` should already be scoped to a single framework, and `theme_order`
+    should be that framework's theme/category list (so the result covers every
+    theme even if some have no controls yet).
+    """
+    theme_totals: dict[str, list[float]] = {theme: [] for theme in theme_order}
     for control in controls:
-        theme_totals[control.theme.value].append(effective_score(control))
+        theme_totals.setdefault(control.theme, []).append(effective_score(control))
 
     theme_scores = {
         theme: (sum(scores) / len(scores) if scores else 0.0)

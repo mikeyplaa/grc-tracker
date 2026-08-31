@@ -7,17 +7,19 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Control, ControlStatus, ControlTheme, Evidence
+from app.frameworks import (
+    FRAMEWORK_LABELS,
+    FRAMEWORK_SLUGS,
+    FRAMEWORK_THEMES,
+    framework_from_slug,
+    natural_sort_key,
+)
+from app.models import Control, ControlStatus, Evidence
 from app.templating import templates
 
 router = APIRouter(prefix="/controls", tags=["controls"])
 
 EVIDENCE_DIR = Path("data") / "evidence"
-
-
-def _sort_key(control: Control) -> tuple[int, int]:
-    _, section, number = control.id.split(".")
-    return int(section), int(number)
 
 
 def _get_control_or_404(control_id: str, db: Session) -> Control:
@@ -27,17 +29,35 @@ def _get_control_or_404(control_id: str, db: Session) -> Control:
     return control
 
 
-@router.get("")
-def list_controls(request: Request, db: Session = Depends(get_db)):
-    controls = sorted(db.query(Control).all(), key=_sort_key)
+def _framework_tabs(active_slug: str) -> list[dict]:
+    return [
+        {"slug": slug, "label": FRAMEWORK_LABELS[framework], "active": slug == active_slug}
+        for framework, slug in FRAMEWORK_SLUGS.items()
+    ]
 
-    grouped: dict[str, list[Control]] = {theme.value: [] for theme in ControlTheme}
+
+@router.get("")
+def list_controls(request: Request, framework: str = "iso27001", db: Session = Depends(get_db)):
+    selected = framework_from_slug(framework)
+    controls = sorted(
+        db.query(Control).filter(Control.framework == selected).all(),
+        key=lambda c: natural_sort_key(c.id),
+    )
+
+    grouped: dict[str, list[Control]] = {theme: [] for theme in FRAMEWORK_THEMES[selected]}
     for control in controls:
-        grouped[control.theme.value].append(control)
+        grouped.setdefault(control.theme, []).append(control)
     grouped = {theme: items for theme, items in grouped.items() if items}
 
     return templates.TemplateResponse(
-        request, "controls_list.html", {"grouped": grouped, "total": len(controls)}
+        request,
+        "controls_list.html",
+        {
+            "grouped": grouped,
+            "total": len(controls),
+            "framework_label": FRAMEWORK_LABELS[selected],
+            "framework_tabs": _framework_tabs(framework),
+        },
     )
 
 
@@ -45,7 +65,13 @@ def list_controls(request: Request, db: Session = Depends(get_db)):
 def control_detail(control_id: str, request: Request, db: Session = Depends(get_db)):
     control = _get_control_or_404(control_id, db)
     return templates.TemplateResponse(
-        request, "control_detail.html", {"control": control, "statuses": list(ControlStatus)}
+        request,
+        "control_detail.html",
+        {
+            "control": control,
+            "statuses": list(ControlStatus),
+            "framework_slug": FRAMEWORK_SLUGS[control.framework],
+        },
     )
 
 

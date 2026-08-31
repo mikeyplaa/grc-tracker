@@ -6,6 +6,7 @@ from fpdf import FPDF
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.frameworks import framework_from_slug
 from app.reporting import ReportData, build_report
 
 router = APIRouter(prefix="/export", tags=["export"])
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 def _render_markdown(report: ReportData) -> str:
     lines = [
-        "# GRC Tracker — Compliance Summary",
+        f"# GRC Tracker — {report.framework_label} Compliance Summary",
         "",
         f"Generated: {report.generated_at:%Y-%m-%d %H:%M} UTC",
         "",
@@ -32,7 +33,7 @@ def _render_markdown(report: ReportData) -> str:
         for control in report.gaps:
             lines.append(
                 f"- **{control.id}** {control.title} — "
-                f"{control.status.value} ({control.theme.value})"
+                f"{control.status.value} ({control.theme})"
             )
     else:
         lines.append("No gaps — every control is Implemented or Evidenced.")
@@ -53,7 +54,10 @@ def _render_pdf(report: ReportData) -> bytes:
     pdf.add_page()
 
     pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 10, "GRC Tracker - Compliance Summary", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        0, 10, f"GRC Tracker - {report.framework_label} Compliance Summary",
+        new_x="LMARGIN", new_y="NEXT",
+    )
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(120, 120, 120)
     pdf.cell(0, 6, f"Generated: {report.generated_at:%Y-%m-%d %H:%M} UTC", new_x="LMARGIN", new_y="NEXT")
@@ -78,7 +82,7 @@ def _render_pdf(report: ReportData) -> bytes:
         for control in report.gaps:
             pdf.multi_cell(
                 0, 5.5,
-                f"  {control.id} {control.title} - {control.status.value} ({control.theme.value})",
+                f"  {control.id} {control.title} - {control.status.value} ({control.theme})",
                 new_x="LMARGIN", new_y="NEXT",
             )
     else:
@@ -102,9 +106,9 @@ def _render_pdf(report: ReportData) -> bytes:
 
 
 @router.get("/markdown")
-def export_markdown(db: Session = Depends(get_db)) -> Response:
-    report = build_report(db)
-    filename = f"grc-summary-{date.today():%Y%m%d}.md"
+def export_markdown(framework: str = "iso27001", db: Session = Depends(get_db)) -> Response:
+    report = build_report(db, framework_from_slug(framework))
+    filename = f"grc-summary-{framework}-{date.today():%Y%m%d}.md"
     return Response(
         content=_render_markdown(report),
         media_type="text/markdown",
@@ -113,9 +117,9 @@ def export_markdown(db: Session = Depends(get_db)) -> Response:
 
 
 @router.get("/pdf")
-def export_pdf(db: Session = Depends(get_db)) -> Response:
-    report = build_report(db)
-    filename = f"grc-summary-{date.today():%Y%m%d}.pdf"
+def export_pdf(framework: str = "iso27001", db: Session = Depends(get_db)) -> Response:
+    report = build_report(db, framework_from_slug(framework))
+    filename = f"grc-summary-{framework}-{date.today():%Y%m%d}.pdf"
     return Response(
         content=_render_pdf(report),
         media_type="application/pdf",
