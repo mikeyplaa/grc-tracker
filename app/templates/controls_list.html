@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Controls · GRC Tracker{% endblock %}
 {% block content %}
-  <p class="meta">{{ total }} controls across {{ grouped|length }} themes</p>
+  <div class="tabs">
+    {% for tab in framework_tabs %}
+      <a href="/controls?framework={{ tab.slug }}" class="{{ 'active' if tab.active else '' }}">{{ tab.label }}</a>
+    {% endfor %}
+  </div>
+  <p class="meta">{{ framework_label }} — {{ total }} controls across {{ grouped|length }} themes</p>
   {% for theme, controls in grouped.items() %}
     <h2>{{ theme }} ({{ controls|length }})</h2>
     <table>

@@ -1,0 +1,56 @@
+[
+  {"id": "CC1.1", "theme": "Security", "title": "Commitment to integrity and ethical values", "description": "The entity demonstrates a commitment to integrity and ethical values."},
+  {"id": "CC1.2", "theme": "Security", "title": "Board independence and oversight", "description": "The board of directors demonstrates independence from management and exercises oversight of the development and performance of internal control."},
+  {"id": "CC1.3", "theme": "Security", "title": "Organizational structure and reporting lines", "description": "Management establishes, with board oversight, structures, reporting lines, and appropriate authorities and responsibilities in the pursuit of objectives."},
+  {"id": "CC1.4", "theme": "Security", "title": "Commitment to competence", "description": "The entity demonstrates a commitment to attract, develop, and retain competent individuals in alignment with objectives."},
+  {"id": "CC1.5", "theme": "Security", "title": "Accountability for internal control", "description": "The entity holds individuals accountable for their internal control responsibilities in the pursuit of objectives."},
+
+  {"id": "CC2.1", "theme": "Security", "title": "Quality information to support internal control", "description": "The entity obtains or generates and uses relevant, quality information to support the functioning of internal control."},
+  {"id": "CC2.2", "theme": "Security", "title": "Internal communication of control responsibilities", "description": "The entity internally communicates information, including objectives and responsibilities for internal control, necessary to support the functioning of internal control."},
+  {"id": "CC2.3", "theme": "Security", "title": "External communication of control matters", "description": "The entity communicates with external parties regarding matters affecting the functioning of internal control."},
+
+  {"id": "CC3.1", "theme": "Security", "title": "Clear objectives for risk assessment", "description": "The entity specifies objectives with sufficient clarity to enable the identification and assessment of risks relating to objectives."},
+  {"id": "CC3.2", "theme": "Security", "title": "Risk identification and analysis", "description": "The entity identifies risks to the achievement of its objectives and analyzes risks as a basis for determining how the risks should be managed."},
+  {"id": "CC3.3", "theme": "Security", "title": "Fraud risk consideration", "description": "The entity considers the potential for fraud in assessing risks to the achievement of objectives."},
+  {"id": "CC3.4", "theme": "Security", "title": "Identifying changes impacting internal control", "description": "The entity identifies and assesses changes that could significantly impact the system of internal control."},
+
+  {"id": "CC4.1", "theme": "Security", "title": "Ongoing and separate evaluations of controls", "description": "The entity selects, develops, and performs ongoing and/or separate evaluations to ascertain whether the components of internal control are present and functioning."},
+  {"id": "CC4.2", "theme": "Security", "title": "Communicating control deficiencies", "description": "The entity evaluates and communicates internal control deficiencies in a timely manner to those responsible for taking corrective action."},
+
+  {"id": "CC5.1", "theme": "Security", "title": "Control activities to mitigate risk", "description": "The entity selects and develops control activities that contribute to the mitigation of risks to the achievement of objectives to an acceptable level."},
+  {"id": "CC5.2", "theme": "Security", "title": "General controls over technology", "description": "The entity also selects and develops general control activities over technology to support the achievement of objectives."},
+  {"id": "CC5.3", "theme": "Security", "title": "Deploying control activities via policies", "description": "The entity deploys control activities through policies that establish what is expected and procedures that put policies into action."},
+
+  {"id": "CC6.1", "theme": "Security", "title": "Logical access security software and architecture", "description": "The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events."},
+  {"id": "CC6.2", "theme": "Security", "title": "User registration and authorization", "description": "Prior to issuing system credentials and granting system access, the entity registers and authorizes new internal and external users."},
+  {"id": "CC6.3", "theme": "Security", "title": "Role-based access provisioning", "description": "The entity authorizes, modifies, or removes access to data, software, functions, and other protected information assets based on roles, responsibilities, or the system design and changes."},
+  {"id": "CC6.4", "theme": "Security", "title": "Physical access restrictions", "description": "The entity restricts physical access to facilities and protected information assets."},
+  {"id": "CC6.5", "theme": "Security", "title": "Secure decommissioning of assets", "description": "The entity discontinues logical and physical protections over physical assets only after the ability to read or recover data and software from those assets has been diminished and is no longer required."},
+  {"id": "CC6.6", "theme": "Security", "title": "Protection against external threats", "description": "The entity implements logical access security measures to protect against threats from sources outside its system boundaries."},
+  {"id": "CC6.7", "theme": "Security", "title": "Restricting transmission and removal of information", "description": "The entity restricts the transmission, movement, and removal of information to authorized internal and external users and processes."},
+  {"id": "CC6.8", "theme": "Security", "title": "Preventing and detecting malicious software", "description": "The entity implements controls to prevent or detect and act upon the introduction of unauthorized or malicious software."},
+
+  {"id": "CC7.1", "theme": "Security", "title": "Detecting vulnerabilities from configuration changes", "description": "The entity uses detection and monitoring procedures to identify changes to configurations that result in the introduction of new vulnerabilities and susceptibilities to newly discovered vulnerabilities."},
+  {"id": "CC7.2", "theme": "Security", "title": "Monitoring for anomalies", "description": "The entity monitors system components and the operation of controls to detect anomalies indicative of malicious acts, natural disasters, or errors affecting the entity's ability to meet its objectives."},
+  {"id": "CC7.3", "theme": "Security", "title": "Evaluating security events", "description": "The entity evaluates security events to determine whether they could or have resulted in a failure to meet objectives and, if so, takes actions to prevent or address such failures."},
+  {"id": "CC7.4", "theme": "Security", "title": "Incident response", "description": "The entity responds to identified security incidents by executing a defined incident response program."},
+  {"id": "CC7.5", "theme": "Security", "title": "Incident recovery", "description": "The entity identifies, develops, and implements activities to recover from identified security incidents."},
+
+  {"id": "CC8.1", "theme": "Security", "title": "Change management process", "description": "The entity authorizes, designs, develops or acquires, configures, documents, tests, approves, and implements changes to infrastructure, data, software, and procedures."},
+
+  {"id": "CC9.1", "theme": "Security", "title": "Business disruption risk mitigation", "description": "The entity identifies, selects, and develops risk mitigation activities for risks arising from potential business disruptions."},
+  {"id": "CC9.2", "theme": "Security", "title": "Vendor and business partner risk management", "description": "The entity assesses and manages risks associated with vendors and business partners."},
+
+  {"id": "A1.1", "theme": "Availability", "title": "Capacity management", "description": "The entity maintains, monitors, and evaluates current processing capacity and use of system components to manage capacity demand and to enable the implementation of additional capacity to help meet its objectives."},
+  {"id": "A1.2", "theme": "Availability", "title": "Environmental protections and backup/recovery", "description": "The entity authorizes, designs, develops or acquires, implements, operates, approves, maintains, and monitors environmental protections, software, data backup processes, and recovery infrastructure to meet its objectives."},
+  {"id": "A1.3", "theme": "Availability", "title": "Recovery plan testing", "description": "The entity tests recovery plan procedures supporting system recovery to meet its objectives."},
+
+  {"id": "C1.1", "theme": "Confidentiality", "title": "Identifying and maintaining confidential information", "description": "The entity identifies and maintains confidential information to meet the entity's objectives related to confidentiality."},
+  {"id": "C1.2", "theme": "Confidentiality", "title": "Disposal of confidential information", "description": "The entity disposes of confidential information to meet the entity's objectives related to confidentiality."},
+
+  {"id": "PI1.1", "theme": "Processing Integrity", "title": "Quality information for processing objectives", "description": "The entity obtains or generates, uses, and communicates relevant, quality information regarding the objectives related to processing, including definitions of data processed and product and service specifications, to support the use of products and services."},
+  {"id": "PI1.2", "theme": "Processing Integrity", "title": "Controls over system inputs", "description": "The entity implements policies and procedures over system inputs, including controls over completeness and accuracy, to result in products, services, and reporting to meet the entity's objectives."},
+  {"id": "PI1.3", "theme": "Processing Integrity", "title": "Controls over system processing", "description": "The entity implements policies and procedures over system processing to result in products, services, and reporting to meet the entity's objectives."},
+  {"id": "PI1.4", "theme": "Processing Integrity", "title": "Controls over system output", "description": "The entity implements policies and procedures to make available or deliver output completely, accurately, and timely in accordance with specifications to meet the entity's objectives."},
+  {"id": "PI1.5", "theme": "Processing Integrity", "title": "Controls over stored data", "description": "The entity implements policies and procedures to store inputs, items in processing, and outputs completely, accurately, and timely in accordance with system specifications to meet the entity's objectives."}
+]

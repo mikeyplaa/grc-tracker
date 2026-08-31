@@ -1,15 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Dashboard · GRC Tracker{% endblock %}
 {% block content %}
+  <div class="tabs">
+    {% for tab in framework_tabs %}
+      <a href="/dashboard?framework={{ tab.slug }}" class="{{ 'active' if tab.active else '' }}">{{ tab.label }}</a>
+    {% endfor %}
+  </div>
   <div class="panel" style="display:flex; align-items:center; justify-content:space-between;">
     <div>
       <div class="score-hero">{{ (overall * 100)|round|int }}%</div>
-      <div class="score-sub">Across {{ total_controls }} controls · {{ gaps|length }} gaps · {{ stale_items|length }} stale evidence items</div>
+      <div class="score-sub">{{ framework_label }} — {{ total_controls }} controls · {{ gaps|length }} gaps · {{ stale_items|length }} stale evidence items</div>
     </div>
     <div style="display:flex; align-items:center; gap:0.5rem;">
-      <a class="button-link" href="/export/markdown">Export Markdown</a>
-      <a class="button-link" href="/export/pdf">Export PDF</a>
-      <form method="post" action="/dashboard/snapshot">
+      <a class="button-link" href="/export/markdown?framework={{ framework_slug }}">Export Markdown</a>
+      <a class="button-link" href="/export/pdf?framework={{ framework_slug }}">Export PDF</a>
+      <form method="post" action="/dashboard/snapshot?framework={{ framework_slug }}">
         <button type="submit">Take snapshot</button>
       </form>
     </div>
@@ -39,7 +44,7 @@
           <tr>
             <td><a class="control-link" href="/controls/{{ control.id }}">{{ control.id }}</a></td>
             <td><a class="control-link" href="/controls/{{ control.id }}">{{ control.title }}</a></td>
-            <td>{{ control.theme.value }}</td>
+            <td>{{ control.theme }}</td>
             <td><span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span></td>
           </tr>
         {% endfor %}

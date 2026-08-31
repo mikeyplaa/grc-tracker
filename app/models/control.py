@@ -11,11 +11,9 @@ if TYPE_CHECKING:
     from app.models.evidence import Evidence
 
 
-class ControlTheme(str, enum.Enum):
-    ORGANIZATIONAL = "Organizational"
-    PEOPLE = "People"
-    PHYSICAL = "Physical"
-    TECHNOLOGICAL = "Technological"
+class ControlFramework(str, enum.Enum):
+    ISO_27001_2022 = "ISO 27001:2022"
+    SOC_2 = "SOC 2"
 
 
 class ControlStatus(str, enum.Enum):
@@ -29,7 +27,8 @@ class Control(Base):
     __tablename__ = "controls"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    theme: Mapped[ControlTheme] = mapped_column(Enum(ControlTheme))
+    framework: Mapped[ControlFramework] = mapped_column(Enum(ControlFramework))
+    theme: Mapped[str] = mapped_column(String)
     title: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(Text)
     status: Mapped[ControlStatus] = mapped_column(
