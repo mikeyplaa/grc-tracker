@@ -22,3 +22,7 @@ class Evidence(Base):
     review_due: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     control: Mapped["Control"] = relationship(back_populates="evidence")
+
+    @property
+    def is_stale(self) -> bool:
+        return self.review_due is not None and self.review_due < date.today()

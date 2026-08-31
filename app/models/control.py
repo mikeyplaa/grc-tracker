@@ -41,3 +41,7 @@ class Control(Base):
     evidence: Mapped[list["Evidence"]] = relationship(
         back_populates="control", cascade="all, delete-orphan"
     )
+
+    @property
+    def has_stale_evidence(self) -> bool:
+        return any(item.is_stale for item in self.evidence)
