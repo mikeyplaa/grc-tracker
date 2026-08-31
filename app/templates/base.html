@@ -112,8 +112,11 @@
     <a href="/controls"><h1>🛡️ GRC Tracker</h1></a>
     <span class="tagline">ISO 27001:2022 Annex A</span>
     <nav>
-      <a href="/controls" class="{{ 'active' if request.url.path.startswith('/controls') else '' }}">Controls</a>
-      <a href="/dashboard" class="{{ 'active' if request.url.path.startswith('/dashboard') else '' }}">Dashboard</a>
+      {% if request.session.get('authenticated') %}
+        <a href="/controls" class="{{ 'active' if request.url.path.startswith('/controls') else '' }}">Controls</a>
+        <a href="/dashboard" class="{{ 'active' if request.url.path.startswith('/dashboard') else '' }}">Dashboard</a>
+        <a href="/logout">Log out</a>
+      {% endif %}
     </nav>
   </header>
   <main>
