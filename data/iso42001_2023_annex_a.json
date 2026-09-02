@@ -1,0 +1,48 @@
+[
+  {"id": "AI.2.2", "theme": "Policies related to AI", "title": "AI policy", "description": "The organization documents and approves an AI policy that sets its direction and commitments for developing, providing or using AI systems responsibly."},
+  {"id": "AI.2.3", "theme": "Policies related to AI", "title": "Alignment with other organizational policies", "description": "The AI policy is aligned with, and cross-references, the organization's other policies (e.g. security, privacy, quality, safety) so obligations do not conflict."},
+  {"id": "AI.2.4", "theme": "Policies related to AI", "title": "Review of the AI policy", "description": "The AI policy is reviewed at planned intervals, and when significant changes occur, to confirm it remains suitable, adequate and effective."},
+
+  {"id": "AI.3.2", "theme": "Internal organization", "title": "AI roles and responsibilities", "description": "Roles and responsibilities for the AI management system and for the AI systems in scope are defined, assigned and communicated."},
+  {"id": "AI.3.3", "theme": "Internal organization", "title": "Reporting of concerns", "description": "A mechanism lets people raise concerns about the organization's AI systems, and defines how those concerns are handled."},
+
+  {"id": "AI.4.2", "theme": "Resources for AI systems", "title": "Resource documentation", "description": "The resources needed for the AI system life cycle (data, tooling, compute, human expertise) are identified and documented."},
+  {"id": "AI.4.3", "theme": "Resources for AI systems", "title": "Data resources", "description": "Data resources used by AI systems are documented, including their characteristics, origin and intended use."},
+  {"id": "AI.4.4", "theme": "Resources for AI systems", "title": "Tooling resources", "description": "Tooling used to develop, operate and maintain AI systems is documented, including its purpose and any relevant limitations."},
+  {"id": "AI.4.5", "theme": "Resources for AI systems", "title": "System and computing resources", "description": "The computing and system resources supporting the AI system life cycle are documented, including infrastructure and environments."},
+  {"id": "AI.4.6", "theme": "Resources for AI systems", "title": "Human resources", "description": "The human resources and competences required across the AI system life cycle are identified, documented and made available."},
+
+  {"id": "AI.5.2", "theme": "Impact assessment", "title": "AI system impact assessment process", "description": "The organization defines and applies a process to assess the potential consequences of its AI systems for individuals, groups and society."},
+  {"id": "AI.5.3", "theme": "Impact assessment", "title": "Documentation of AI system impact assessments", "description": "The results of AI system impact assessments are documented and retained."},
+  {"id": "AI.5.4", "theme": "Impact assessment", "title": "Assessing AI system impact on individuals or groups", "description": "Impact assessments consider potential harms and benefits to individuals or groups of individuals, including to their rights."},
+  {"id": "AI.5.5", "theme": "Impact assessment", "title": "Assessing societal impacts of AI systems", "description": "Impact assessments consider broader societal impacts, such as effects on the environment, economy, or public institutions."},
+
+  {"id": "AI.6.1.2", "theme": "AI system life cycle", "title": "Objectives for responsible development of AI systems", "description": "The organization identifies and documents objectives that guide the responsible development of its AI systems."},
+  {"id": "AI.6.1.3", "theme": "AI system life cycle", "title": "Processes for responsible AI system design and development", "description": "Processes for the responsible design and development of AI systems are defined and applied across the life cycle."},
+  {"id": "AI.6.2.2", "theme": "AI system life cycle", "title": "AI system requirements and specification", "description": "Requirements for each AI system are specified, including functional, performance and responsible-AI requirements."},
+  {"id": "AI.6.2.3", "theme": "AI system life cycle", "title": "Documentation of AI system design and development", "description": "The design and development of AI systems is documented to a level that supports verification, operation and later review."},
+  {"id": "AI.6.2.4", "theme": "AI system life cycle", "title": "AI system verification and validation", "description": "AI systems are verified and validated against their requirements before deployment, with criteria and results documented."},
+  {"id": "AI.6.2.5", "theme": "AI system life cycle", "title": "AI system deployment", "description": "AI systems are deployed following a defined process that confirms deployment criteria and readiness are met."},
+  {"id": "AI.6.2.6", "theme": "AI system life cycle", "title": "AI system operation and monitoring", "description": "AI systems in operation are monitored against defined criteria, and issues are identified and acted on."},
+  {"id": "AI.6.2.7", "theme": "AI system life cycle", "title": "AI system technical documentation", "description": "Technical documentation for each AI system is produced and kept available for relevant interested parties."},
+  {"id": "AI.6.2.8", "theme": "AI system life cycle", "title": "AI system recording of event logs", "description": "AI systems record event logs sufficient to support traceability, monitoring, investigation and accountability."},
+
+  {"id": "AI.7.2", "theme": "Data for AI systems", "title": "Data for development and enhancement of AI systems", "description": "The organization defines and documents the data requirements for developing and enhancing its AI systems."},
+  {"id": "AI.7.3", "theme": "Data for AI systems", "title": "Acquisition of data", "description": "Data is acquired in line with defined requirements and with a record of its source and the terms under which it may be used."},
+  {"id": "AI.7.4", "theme": "Data for AI systems", "title": "Quality of data for AI systems", "description": "The quality of data used by AI systems is assessed against defined criteria appropriate to the intended use."},
+  {"id": "AI.7.5", "theme": "Data for AI systems", "title": "Data provenance", "description": "The provenance of data used by AI systems is recorded and maintained over the data life cycle."},
+  {"id": "AI.7.6", "theme": "Data for AI systems", "title": "Data preparation", "description": "Data preparation methods (e.g. cleaning, labelling, transformation) are defined, documented and applied consistently."},
+
+  {"id": "AI.8.2", "theme": "Information for interested parties", "title": "System documentation and information for users", "description": "Documentation is provided to users that explains how to use the AI system appropriately and its relevant limitations."},
+  {"id": "AI.8.3", "theme": "Information for interested parties", "title": "External reporting", "description": "The organization provides a way for affected parties to report adverse impacts of its AI systems, and defines how reports are handled."},
+  {"id": "AI.8.4", "theme": "Information for interested parties", "title": "Communication of incidents", "description": "The organization defines and applies a process to communicate AI system incidents to relevant interested parties."},
+  {"id": "AI.8.5", "theme": "Information for interested parties", "title": "Information for interested parties", "description": "Relevant information about AI systems (e.g. purpose, responsible party, obligations) is made available to interested parties."},
+
+  {"id": "AI.9.2", "theme": "Use of AI systems", "title": "Processes for responsible use of AI systems", "description": "Processes for the responsible use of AI systems are defined, documented and applied."},
+  {"id": "AI.9.3", "theme": "Use of AI systems", "title": "Objectives for responsible use of AI systems", "description": "The organization identifies and documents objectives that guide the responsible use of AI systems."},
+  {"id": "AI.9.4", "theme": "Use of AI systems", "title": "Intended use of the AI system", "description": "AI systems are used in line with their intended purpose and the conditions and limitations set by the provider."},
+
+  {"id": "AI.10.2", "theme": "Third-party & customer relationships", "title": "Allocating responsibilities", "description": "Responsibilities across the AI value chain are allocated and agreed between the organization, its suppliers and its customers."},
+  {"id": "AI.10.3", "theme": "Third-party & customer relationships", "title": "Suppliers", "description": "The organization sets responsible-AI expectations for suppliers and verifies that supplied components and services meet them."},
+  {"id": "AI.10.4", "theme": "Third-party & customer relationships", "title": "Customers", "description": "The organization provides customers with the information and support needed to use its AI systems responsibly."}
+]

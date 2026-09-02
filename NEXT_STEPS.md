@@ -381,3 +381,33 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     now unused — safe to delete. It's gitignored so it won't be committed.
   - Local run is now: `docker compose up --build -d` then open
     `http://localhost:${APP_PORT}` (`.env` currently sets `APP_PORT=8001`).
+- **Third framework — ISO/IEC 42001:2023 (AI management system) added
+  (2026-09-02).** Same multi-framework mechanism as SOC 2; branched off the
+  Postgres slice (`claude/phase6-iso42001`).
+  - `ControlFramework` enum gains `ISO_42001_2023`; slug `iso42001`; 9 Annex A
+    control objectives (A.2–A.10) as the theme vocabulary in `frameworks.py`.
+  - `data/iso42001_2023_annex_a.json`: 38 Annex A reference controls
+    (3/2/5/4/9/5/4/3/3 across the nine objectives). **Flag for Mike** (same
+    policy as the ISO 27001 / SOC 2 seeds): IDs, objective groupings and short
+    titles are the widely-published Annex A structure (high confidence);
+    `description` is my own paraphrase, not verbatim ISO text — swap in wording
+    from a licensed copy of the standard for the portfolio artifact.
+  - **ID-collision decision (Option A, chosen by Mike):** ISO 42001 Annex A
+    reuses ISO 27001's `A.<n>.<m>` notation and the numbers overlap (`A.5.2`,
+    `A.7.2`–`A.7.6`, `A.8.2`–`A.8.5` exist in both). `Control.id` is still a
+    global PK, so ISO 42001 IDs are stored **and displayed** with an `AI.`
+    prefix (`AI.5.2` = ISO 42001 Annex A 5.2). No display-mapping layer — a
+    consistent `AI.` prefix was preferred over a bug-prone
+    show-`A.5.2`-but-store-`AI.5.2` split. The proper fix (composite
+    `(framework, control_id)` key) is noted as a possible later slice if the
+    prefix ever grates.
+  - `alembic/versions/0002_add_iso42001_framework.py`: `ALTER TYPE
+    controlframework ADD VALUE IF NOT EXISTS 'ISO_42001_2023'` inside an
+    `autocommit_block()` (PG only; no-op on SQLite). Downgrade is a documented
+    no-op (PG can't drop one enum label without recreating the type).
+  - Verified in Docker: incremental upgrade `0001 -> 0002` and a
+    from-scratch fresh DB both run clean; 93 + 43 + 38 = 174 controls seed;
+    `alembic check` no drift; SQLite up/down/up chain clean; full app flow on
+    `?framework=iso42001` (list of 38, status write on `AI.6.2.4`, snapshot,
+    dashboard, markdown + PDF export) all green; ISO 27001 / SOC 2 dashboards
+    unaffected; three framework tabs render.

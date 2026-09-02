@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class ControlFramework(str, enum.Enum):
     ISO_27001_2022 = "ISO 27001:2022"
     SOC_2 = "SOC 2"
+    ISO_42001_2023 = "ISO 42001:2023"
 
 
 class ControlStatus(str, enum.Enum):
