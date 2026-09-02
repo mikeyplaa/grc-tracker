@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.env
+data/*.db
+data/evidence
+NEXT_STEPS.md
+CLAUDE.md
+README.md
