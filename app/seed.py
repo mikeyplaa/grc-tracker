@@ -1,13 +1,11 @@
 import json
 
-from app.db import Base, SessionLocal, engine
+from app.db import SessionLocal
 from app.frameworks import FRAMEWORK_SEED_FILES
 from app.models import Control
 
 
 def seed_controls() -> None:
-    Base.metadata.create_all(bind=engine)
-
     db = SessionLocal()
     try:
         total_added, total_skipped = 0, 0

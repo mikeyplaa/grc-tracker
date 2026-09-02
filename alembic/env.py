@@ -1,0 +1,61 @@
+"""Alembic migration environment.
+
+The database URL comes from the app's own settings (env-driven) rather than
+alembic.ini, so migrations always target the same DB the app uses.
+"""
+from logging.config import fileConfig
+
+from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+from app.core.config import get_settings
+from app.db import Base
+
+# Import models so their tables register on Base.metadata for autogenerate.
+from app import models  # noqa: F401
+
+config = context.config
+config.set_main_option("sqlalchemy.url", get_settings().database_url)
+
+if config.config_file_name is not None:
+    # keep_existing: env.py also runs programmatically from the app's startup
+    # hook, where clobbering uvicorn's loggers would silence request logs.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
+
+target_metadata = Base.metadata
+
+
+def run_migrations_offline() -> None:
+    context.configure(
+        url=config.get_main_option("sqlalchemy.url"),
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            # Batch mode keeps ALTER TABLE working on SQLite dev databases;
+            # it is a no-op on Postgres.
+            render_as_batch=connection.dialect.name == "sqlite",
+        )
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

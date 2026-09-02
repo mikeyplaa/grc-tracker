@@ -30,6 +30,35 @@
 - [x] Simple auth (single local login) if exposing beyond the lab network
 - [ ] Manual "connector" style checklist prompts (poor-man's automated evidence)
 
+## Phase 6 — Multi-user (RBAC on one shared programme)
+Decision (2026-09-02): Mike needs multi-user. Scope confirmed as **RBAC on a single
+shared programme** (all users collaborate on the same controls/evidence; differences
+are role-based), ~<20 internal users, home-lab/VPN only, not internet-exposed. This
+supersedes CLAUDE.md's "multi-user out of scope" line for the shared-programme case
+only — still NOT multi-tenancy / isolated workspaces.
+
+- [x] **Slice 1 — Postgres + Alembic** (current schema, no behaviour change)
+  - Add `alembic` + `psycopg[binary]` to requirements
+  - `db` service in docker-compose (postgres:16 + healthcheck + named volume);
+    app `depends_on` db healthy; `DATABASE_URL` → postgres in compose
+  - Alembic scaffold; initial migration matching the current models
+  - Startup runs `alembic upgrade head` instead of `Base.metadata.create_all`
+  - SQLite stays the default for bare `uvicorn` dev runs
+- [ ] **Slice 2 — User model + DB-backed auth**
+  - `User`: email, `password_hash` (argon2), `role` enum, `is_active`, `created_at`
+  - Replace env-var single login in `app/auth.py`; keep `SessionMiddleware`
+  - First-run bootstrap: create an admin from `AUTH_USERNAME`/`AUTH_PASSWORD`
+    when the users table is empty (keeps deploy one step)
+- [ ] **Slice 3 — Roles + enforcement**
+  - `require_role(...)` dependency: viewer = read-only, contributor = edit
+    controls/evidence/snapshots, admin = also manage users
+- [ ] **Slice 4 — Attribution + audit log**
+  - `updated_by` on status changes, `uploaded_by` on evidence, optional
+    `owner_id` FK on `Control`; lightweight activity-log table (who/what/when)
+- [ ] **Slice 5 — User-management UI** (admin only): create / deactivate /
+  set role / reset password
+- [ ] **Slice 6 — CSRF tokens** on the mutating forms
+
 ---
 *Update this file at the end of each Claude Code session: tick off what's done, note
 any decisions or deviations from the plan, and adjust upcoming phases as needed.*
@@ -307,3 +336,48 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
   Phase 5 item is manual "connector" style checklist prompts. Outside
   Phase 5, the Proxmox deployment step (Phase 4) is still pending Mike's
   lab access.
+- **Phase 6 slice 1 — Postgres + Alembic complete (2026-09-02).** No app
+  behaviour change; this is pure infrastructure so slices 2–6 land on a real
+  migration tool.
+  - `requirements.txt`: added `alembic==1.14.0`, `psycopg[binary]==3.2.3`.
+  - Alembic scaffold: `alembic.ini` (URL comes from app settings, not the
+    ini), `alembic/env.py`, `alembic/script.py.mako`,
+    `alembic/versions/0001_initial_schema.py`. `env.py` pulls
+    `sqlalchemy.url` from `get_settings().database_url` and imports
+    `app.models` so autogenerate sees the tables. Batch mode is enabled only
+    on SQLite (keeps future `ALTER`s working there; no-op on PG).
+  - **Enum gotcha handled**: SQLAlchemy persists the enum *member names*
+    (`ISO_27001_2022`, `NOT_STARTED`, …), not the `.value` strings — verified
+    against the existing SQLite db. The initial migration creates the PG
+    `controlframework` / `controlstatus` types with those exact labels. The
+    two enum types are created once via explicit `.create(checkfirst=True)`
+    with `create_type=False` on the columns, so sharing `controlframework`
+    across `controls` + `score_snapshots` doesn't double-CREATE TYPE on PG.
+  - `app/main.py`: startup now runs `alembic upgrade head` programmatically
+    (`run_migrations()`) before `seed_controls()`, replacing
+    `Base.metadata.create_all`. `app/seed.py` lost its `create_all` call too.
+  - **docker-compose.yml**: new `db` service (`postgres:16`, `pg_isready`
+    healthcheck, named volume `db_data`); `app` gains
+    `depends_on: db: condition: service_healthy` and
+    `DATABASE_URL=postgresql+psycopg://…@db:5432/…` built from
+    `POSTGRES_USER/PASSWORD/DB` (defaults `grc`/`grc`/`grc`). Added those
+    three vars to `.env` / `.env.example`.
+  - `config.py` default `database_url` stays SQLite, so a bare
+    `uvicorn app.main:app` dev run still works with zero setup (and now
+    migrates itself on startup).
+  - `docker/Dockerfile`: also copies `alembic/`, `alembic.ini`, and
+    `data/*.json` (seed files — image is now self-contained; the SQLite
+    db / evidence uploads still come from the mounted volume). Added
+    `.dockerignore`.
+  - **Verified in Docker** (daemon was available this session): `docker
+    compose up --build` → migration runs (`0001_initial`), 136 controls
+    seed, `/health` 200. Full auth flow via curl: login, `/controls`,
+    status updates on both frameworks (writes the PG enum correctly —
+    checked `A.5.1`=IMPLEMENTED, `CC1.1`=IN_PROGRESS in psql),
+    `/dashboard/snapshot`, `/dashboard`, `/export/markdown`, `/export/pdf`
+    all 200/303. `alembic check` reports no drift vs. the models. Also ran
+    the migration up+down against SQLite in the image — both dialects clean.
+  - **Stale artefact**: `data/grc_tracker.db` (old SQLite, pre-Postgres) is
+    now unused — safe to delete. It's gitignored so it won't be committed.
+  - Local run is now: `docker compose up --build -d` then open
+    `http://localhost:${APP_PORT}` (`.env` currently sets `APP_PORT=8001`).

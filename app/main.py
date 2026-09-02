@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+from alembic import command
+from alembic.config import Config as AlembicConfig
 from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,7 +10,6 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth import require_login
 from app.core.config import get_settings
-from app.db import Base, engine
 from app.models import Control, Evidence, ScoreSnapshot  # noqa: F401
 from app.routers.auth import router as auth_router
 from app.routers.controls import router as controls_router
@@ -19,6 +20,17 @@ from app.seed import seed_controls
 logger = logging.getLogger("grc_tracker")
 
 settings = get_settings()
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def run_migrations() -> None:
+    """Bring the database schema up to head. Runs on startup so a fresh deploy
+    (or an upgrade) needs no manual `alembic upgrade` step -- same philosophy as
+    the auto-seed below."""
+    cfg = AlembicConfig(str(_PROJECT_ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(_PROJECT_ROOT / "alembic"))
+    command.upgrade(cfg, "head")
 
 app = FastAPI(title=settings.app_name)
 app.add_middleware(
@@ -38,7 +50,7 @@ app.include_router(export_router, dependencies=[Depends(require_login)])
 
 @app.on_event("startup")
 def on_startup() -> None:
-    Base.metadata.create_all(bind=engine)
+    run_migrations()
     seed_controls()
     if settings.auth_password == "changeme":
         logger.warning(
