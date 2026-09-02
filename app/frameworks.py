@@ -8,11 +8,13 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 FRAMEWORK_LABELS: dict[ControlFramework, str] = {
     ControlFramework.ISO_27001_2022: "ISO 27001:2022",
     ControlFramework.SOC_2: "SOC 2",
+    ControlFramework.ISO_42001_2023: "ISO 42001:2023",
 }
 
 FRAMEWORK_SLUGS: dict[ControlFramework, str] = {
     ControlFramework.ISO_27001_2022: "iso27001",
     ControlFramework.SOC_2: "soc2",
+    ControlFramework.ISO_42001_2023: "iso42001",
 }
 SLUG_TO_FRAMEWORK: dict[str, ControlFramework] = {
     slug: framework for framework, slug in FRAMEWORK_SLUGS.items()
@@ -33,11 +35,24 @@ FRAMEWORK_THEMES: dict[ControlFramework, list[str]] = {
         "Confidentiality",
         "Processing Integrity",
     ],
+    # ISO/IEC 42001:2023 Annex A control objectives (A.2 -- A.10).
+    ControlFramework.ISO_42001_2023: [
+        "Policies related to AI",
+        "Internal organization",
+        "Resources for AI systems",
+        "Impact assessment",
+        "AI system life cycle",
+        "Data for AI systems",
+        "Information for interested parties",
+        "Use of AI systems",
+        "Third-party & customer relationships",
+    ],
 }
 
 FRAMEWORK_SEED_FILES: dict[ControlFramework, Path] = {
     ControlFramework.ISO_27001_2022: DATA_DIR / "iso27001_2022_annex_a.json",
     ControlFramework.SOC_2: DATA_DIR / "soc2_2017_tsc.json",
+    ControlFramework.ISO_42001_2023: DATA_DIR / "iso42001_2023_annex_a.json",
 }
 
 
