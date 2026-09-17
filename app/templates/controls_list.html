@@ -6,12 +6,15 @@
       <a href="/controls?framework={{ tab.slug }}" class="{{ 'active' if tab.active else '' }}">{{ tab.label }}</a>
     {% endfor %}
   </div>
-  <p class="meta">{{ framework_label }} — {{ total }} controls across {{ grouped|length }} themes</p>
+  <p class="meta">
+    {{ framework_label }} — {{ total }} controls across {{ grouped|length }} themes ·
+    {{ published_count }} published to the <a class="control-link" href="/trust?framework={{ framework_tabs|selectattr('active')|map(attribute='slug')|first }}">trust centre</a>
+  </p>
   {% for theme, controls in grouped.items() %}
     <h2>{{ theme }} ({{ controls|length }})</h2>
     <table>
       <thead>
-        <tr><th style="width: 5.5rem;">ID</th><th>Title</th><th style="width: 8rem;">Status</th></tr>
+        <tr><th style="width: 5.5rem;">ID</th><th>Title</th><th style="width: 8rem;">Status</th><th style="width: 7rem;">Trust centre</th></tr>
       </thead>
       <tbody>
         {% for control in controls %}
@@ -19,6 +22,9 @@
             <td><a class="control-link" href="/controls/{{ control.id }}">{{ control.id }}</a></td>
             <td><a class="control-link" href="/controls/{{ control.id }}">{{ control.title }}</a></td>
             <td><span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span></td>
+            <td>
+              {% if control.is_public %}<span class="badge public">Published</span>{% else %}<span class="evidence-note">—</span>{% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>

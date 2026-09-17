@@ -59,6 +59,32 @@ only — still NOT multi-tenancy / isolated workspaces.
   set role / reset password
 - [ ] **Slice 6 — CSRF tokens** on the mutating forms
 
+## Phase 7 — Public trust centre
+Decision (2026-09-17): Mike wants the tracker to double as a trust centre —
+one user, local Docker, for now. Confirmed scope: a public page **alongside**
+the existing authenticated admin (not replacing it, not a second service),
+per-control status detail, **no gate** on the public page, and an **explicit
+publish flag per item** so nothing is public by default.
+
+- [x] **Slice 1 — publishable controls + public /trust surface**
+  - `Control.is_public` / `Control.published_at`; per-control publish toggle in
+    the admin UI
+  - Unauthenticated `/trust` (framework tabs, score over published controls
+    only, theme breakdown, published control list) and `/trust/controls/{id}`
+  - Evidence published as count + last-refreshed + overdue flag only
+  - `TRUST_ORG_NAME` / `TRUST_CONTACT_EMAIL` branding
+- [ ] **Slice 2 — published documents** (policy PDFs, cert letters): a
+  `Document` model with the same explicit publish flag, some downloadable,
+  some "available on request". Deferred from slice 1 — Mike picked control
+  detail only for the first pass.
+- [ ] **Slice 3 — subprocessors / security FAQ / vuln-disclosure contact**
+  sections, curated in admin
+- [ ] **Slice 4 — gated documents** (access request captured in admin) if the
+  trust centre ever faces a real customer rather than the lab
+- [ ] **Slice 5 — public score trend** from `ScoreSnapshot`, restricted to
+  published controls (needs published-only snapshots; today's snapshots cover
+  every control, so they cannot be shown publicly as-is)
+
 ---
 *Update this file at the end of each Claude Code session: tick off what's done, note
 any decisions or deviations from the plan, and adjust upcoming phases as needed.*
@@ -411,3 +437,77 @@ any decisions or deviations from the plan, and adjust upcoming phases as needed.
     `?framework=iso42001` (list of 38, status write on `AI.6.2.4`, snapshot,
     dashboard, markdown + PDF export) all green; ISO 27001 / SOC 2 dashboards
     unaffected; three framework tabs render.
+
+- **Phase 7 slice 1 — public trust centre (2026-09-17).** Branch
+  `claude/trust-centre-docker-local-rcf7lt`. Answers Mike gave up front, which
+  shaped the whole slice: public page **plus** admin behind login (one app, one
+  container); per-control status detail as the published content; **no gate**;
+  explicit per-item publish flag; evidence as **count + freshness only**; score
+  computed over **published controls only**; `last_reviewed` shown publicly;
+  `owner_note` **hidden** (admin-only); branding from env vars.
+  - `Control` gains `is_public` (bool, default false, NOT NULL) and
+    `published_at`. `alembic/versions/0003_add_control_publishing.py` adds both
+    in a `batch_alter_table` with `server_default=sa.false()` so the columns can
+    be added to a table already holding 174 rows. Existing rows stay
+    unpublished — turning this on exposes nothing by itself.
+  - `app/trust.py` is the whole public read path. Controls are mapped to a
+    frozen `PublicControl` dataclass that has **no field for `owner_note` and
+    no field for evidence titles/locations**, so a future template edit cannot
+    leak them. `public_control_or_none()` returns the same `None` for "unknown
+    ID" and "not published", so `/trust` can't be used to probe which control
+    IDs are being held back.
+  - `app/routers/trust.py` is mounted in `main.py` **without** the
+    `require_login` dependency the other three routers carry — the one
+    deliberate public surface. Routes: `GET /trust` (optional
+    `?framework=<slug>`) and `GET /trust/controls/{id}`.
+  - **Framework visibility is derived, not separately toggled**: a framework tab
+    appears exactly when ≥1 of its controls is published (`published_frameworks()`).
+    `ControlFramework` is an enum, not a table, so a framework-level flag would
+    have meant a new table and a second publishing switch to reason about —
+    deriving it keeps one switch. `?framework=` pointing at a framework with
+    nothing published falls back to the first one that has something, so the
+    landing page is never an empty tab.
+  - **Scoring**: reuses `compute_scores()` over the published subset, with the
+    theme list narrowed to themes that actually have published controls — the
+    public number is never a function of anything unpublished. The admin
+    dashboard is untouched and still scores all controls (verified: 93 controls
+    / 91 gaps on ISO after publishing 8 of them).
+  - `published_at` doubles as "public record last changed": `_touch_public_record()`
+    in `app/routers/controls.py` bumps it on a status change or evidence upload
+    **if** the control is published, so the trust centre's "Last updated" stays
+    honest. Unpublishing clears it.
+  - Templates: new `trust_base.html` (public shell — no admin nav, no
+    session-dependent links, `noindex`), `trust_index.html`, `trust_control.html`,
+    `trust_empty.html`. The inline `<style>` block moved out of `base.html` into
+    `app/static/css/app.css` so both shells share one stylesheet; trust-centre
+    styles are appended there.
+  - Admin UI: publish/unpublish button + "what publishing exposes" note on the
+    control page, `Published` badge column on the controls list, published count
+    in the list header, `Trust Centre` link in the nav.
+  - `TRUST_ORG_NAME` (default `Your Organisation`) and `TRUST_CONTACT_EMAIL`
+    (blank hides the contact line) added to `config.py`, `.env.example` and the
+    compose app service.
+  - **Verified** (SQLite + uvicorn; no Docker daemon in this session):
+    migrations `0001→0003` from scratch, 174 controls seeded; `/trust`
+    unauthenticated 200 with the empty state, then with published controls;
+    `/trust/controls/{id}` 404 for both unpublished and unknown IDs; `/controls`,
+    `/dashboard`, `/export/*` and `POST /controls/{id}/publish` all still 303 to
+    `/login` when unauthenticated (and an unauthenticated publish POST left
+    `is_public=0` in the DB); scores checked by hand (A.5.1 Evidenced = 1.0,
+    A.5.2 Implemented with stale evidence = 0.33 via the stale tier-drop, A.6.1
+    In Progress = 0.33 → Organizational 66%, People 33%, overall 55%); grepped
+    the public HTML for the owner note, evidence titles, evidence URLs and any
+    `/controls/...` admin link — none present; SOC 2 tab scores independently;
+    unpublishing the last control of a framework removes its tab and
+    unpublishing everything returns the empty state; `alembic check` reports no
+    drift and `0003` down+up is clean on SQLite; the Postgres DDL was rendered
+    offline (`alembic upgrade --sql`) and is `ALTER TABLE controls ADD COLUMN
+    is_public BOOLEAN DEFAULT false NOT NULL` as intended.
+    **Not verified against a live Postgres or in Docker this session** (no
+    daemon available) — worth one `docker compose up --build` on the lab box.
+  - Screenshots taken with Playwright (public index, public control detail,
+    admin control page).
+  - **Flag for Mike**: the public page's disclaimer says evidence is "available
+    under NDA on request" — reword it in `trust_index.html` /
+    `trust_control.html` if that is not the posture you want, and set
+    `TRUST_ORG_NAME` / `TRUST_CONTACT_EMAIL` before showing it to anyone.

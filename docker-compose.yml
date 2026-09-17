@@ -23,6 +23,8 @@ services:
       - ./data:/code/data
     environment:
       - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-grc}:${POSTGRES_PASSWORD:-grc}@db:5432/${POSTGRES_DB:-grc}
+      - TRUST_ORG_NAME=${TRUST_ORG_NAME:-Your Organisation}
+      - TRUST_CONTACT_EMAIL=${TRUST_CONTACT_EMAIL:-}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
       - SESSION_SECRET_KEY=${SESSION_SECRET_KEY:-}

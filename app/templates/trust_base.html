@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><text y=%2213%22 font-size=%2214%22>🛡️</text></svg>">
+  <title>{% block title %}Trust Centre · {{ org_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  {#
+    Public shell: no admin navigation, no session-dependent links. Anything
+    rendered below comes from app.trust, which only ever hands over published
+    controls.
+  #}
+  <header class="trust-header">
+    <div class="header-inner">
+      <a href="/trust"><h1>🛡️ {{ org_name }} Trust Centre</h1></a>
+      <div class="tagline">Security and compliance posture, published from our live control tracker.</div>
+    </div>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    {% if contact_email %}
+      Security contact: <a class="control-link" href="mailto:{{ contact_email }}">{{ contact_email }}</a> &middot;
+    {% endif %}
+    {{ org_name }} Trust Centre
+  </footer>
+</body>
+</html>

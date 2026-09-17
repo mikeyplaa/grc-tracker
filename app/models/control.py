@@ -1,8 +1,8 @@
 import enum
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, Enum, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum, String, Text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -38,6 +38,13 @@ class Control(Base):
     owner_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_reviewed: Mapped[date | None] = mapped_column(Date, nullable=True)
 
+    # Trust centre publishing. Nothing is visible on the public /trust
+    # surface until is_public is explicitly set from the admin UI.
+    is_public: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     evidence: Mapped[list["Evidence"]] = relationship(
         back_populates="control", cascade="all, delete-orphan"
     )
@@ -45,3 +52,15 @@ class Control(Base):
     @property
     def has_stale_evidence(self) -> bool:
         return any(item.is_stale for item in self.evidence)
+
+    @property
+    def evidence_last_refreshed(self) -> datetime | None:
+        """Most recent evidence upload date, or None if there is no evidence.
+
+        The trust centre publishes this (plus a count) instead of the evidence
+        items themselves -- freshness is the trust signal; titles and file
+        locations stay private.
+        """
+        if not self.evidence:
+            return None
+        return max(item.uploaded_at for item in self.evidence)
