@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     app_name: str = "GRC Tracker"
     database_url: str = "sqlite:///./data/grc_tracker.db"
 
+    # Public trust centre branding (surfaces on /trust, which needs no login).
+    trust_org_name: str = "Your Organisation"
+    trust_contact_email: str = ""
+
     auth_username: str = "admin"
     auth_password: str = "changeme"
     session_secret_key: str = Field(default_factory=lambda: secrets.token_hex(32))

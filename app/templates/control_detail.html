@@ -19,7 +19,31 @@
     <dd>{{ control.owner_note or "—" }}</dd>
     <dt>Last reviewed</dt>
     <dd>{{ control.last_reviewed or "Never" }}</dd>
+    <dt>Trust centre</dt>
+    <dd>
+      {% if control.is_public %}
+        <span class="badge public">Published</span>
+        <span class="evidence-note">
+          since {{ control.published_at.date() if control.published_at else "—" }} &middot;
+          <a class="control-link" href="/trust/controls/{{ control.id }}">view public page</a>
+        </span>
+      {% else %}
+        <span class="badge private">Not published</span>
+        <span class="evidence-note">Hidden from the public trust centre.</span>
+      {% endif %}
+    </dd>
   </div>
+
+  <form class="panel" method="post" action="/controls/{{ control.id }}/publish">
+    <label>Trust centre visibility</label><br>
+    <input type="hidden" name="publish" value="{{ 'false' if control.is_public else 'true' }}">
+    <button type="submit">{{ "Unpublish from trust centre" if control.is_public else "Publish to trust centre" }}</button>
+    <p class="evidence-note" style="margin-bottom:0;">
+      Publishing shows this control's ID, title, description, status, last-reviewed
+      date and evidence count/freshness at <code>/trust</code>. Your owner note and
+      the evidence items themselves are never published.
+    </p>
+  </form>
 
   <form class="panel" method="post" action="/controls/{{ control.id }}/status">
     <label for="status">Update status</label><br>

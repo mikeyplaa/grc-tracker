@@ -15,6 +15,7 @@ from app.routers.auth import router as auth_router
 from app.routers.controls import router as controls_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.export import router as export_router
+from app.routers.trust import router as trust_router
 from app.seed import seed_controls
 
 logger = logging.getLogger("grc_tracker")
@@ -46,6 +47,9 @@ app.include_router(auth_router)
 app.include_router(controls_router, dependencies=[Depends(require_login)])
 app.include_router(dashboard_router, dependencies=[Depends(require_login)])
 app.include_router(export_router, dependencies=[Depends(require_login)])
+# The trust centre is the one public surface: no require_login dependency here,
+# by design. It renders published controls only (see app/trust.py).
+app.include_router(trust_router)
 
 
 @app.on_event("startup")

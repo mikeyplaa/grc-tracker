@@ -1,0 +1,29 @@
+{% extends "trust_base.html" %}
+{% block title %}{{ control.id }} · Trust Centre · {{ org_name }}{% endblock %}
+{% block content %}
+  <a class="back-link" href="/trust?framework={{ control.framework_slug }}">&larr; All published controls</a>
+  <h2>{{ control.framework_label }} &middot; {{ control.theme }}</h2>
+  <div class="panel">
+    <dt>Control</dt>
+    <dd>{{ control.id }} — {{ control.title }}</dd>
+    <dt>Status</dt>
+    <dd>
+      <span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span>
+      {% if control.has_stale_evidence %}<span class="badge stale">Evidence review overdue</span>{% endif %}
+    </dd>
+    <dt>Description</dt>
+    <dd>{{ control.description }}</dd>
+    <dt>Last reviewed</dt>
+    <dd>{{ control.last_reviewed or "Not yet reviewed" }}</dd>
+    <dt>Evidence</dt>
+    <dd class="evidence-note">
+      {% if control.evidence_count %}
+        {{ control.evidence_count }} item{{ '' if control.evidence_count == 1 else 's' }} on file{%
+          if control.evidence_last_refreshed %}, last refreshed {{ control.evidence_last_refreshed.date() }}{% endif %}.
+        Evidence documents are held internally and available under NDA on request.
+      {% else %}
+        No evidence recorded against this control yet.
+      {% endif %}
+    </dd>
+  </div>
+{% endblock %}

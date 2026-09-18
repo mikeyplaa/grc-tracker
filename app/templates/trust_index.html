@@ -1,0 +1,87 @@
+{% extends "trust_base.html" %}
+{% block title %}{{ view.framework_label }} · Trust Centre · {{ org_name }}{% endblock %}
+{% block content %}
+  {% if framework_tabs|length > 1 %}
+    <div class="tabs">
+      {% for tab in framework_tabs %}
+        <a href="/trust?framework={{ tab.slug }}" class="{{ 'active' if tab.active else '' }}">{{ tab.label }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="value">{{ (view.overall * 100)|round|int }}%</div>
+      <div class="label">{{ view.framework_label }} implementation</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ view.total_published }}</div>
+      <div class="label">Published controls</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ view.grouped|length }}</div>
+      <div class="label">{{ 'Themes' if view.grouped|length != 1 else 'Theme' }} covered</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" style="font-size: 1.1rem; padding-top: 0.55rem;">
+        {{ view.last_updated.date() if view.last_updated else "—" }}
+      </div>
+      <div class="label">Last updated</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 0.5rem; font-size:0.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em;">
+      Implementation by theme
+    </h3>
+    {% for theme, score in view.theme_scores.items() %}
+      <div class="theme-row">
+        <div>{{ theme }}</div>
+        <div class="theme-bar"><span style="width: {{ (score * 100)|round|int }}%;"></span></div>
+        <div class="pct">{{ (score * 100)|round|int }}%</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% for theme, controls in view.grouped.items() %}
+    <h2>{{ theme }} ({{ controls|length }})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 5.5rem;">ID</th>
+          <th>Control</th>
+          <th style="width: 8rem;">Status</th>
+          <th style="width: 12rem;">Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for control in controls %}
+          <tr>
+            <td><a class="control-link" href="/trust/controls/{{ control.id }}">{{ control.id }}</a></td>
+            <td><a class="control-link" href="/trust/controls/{{ control.id }}">{{ control.title }}</a></td>
+            <td>
+              <span class="badge {{ control.status.value|lower|replace(' ', '-') }}">{{ control.status.value }}</span>
+            </td>
+            <td class="evidence-note">
+              {% if control.evidence_count %}
+                {{ control.evidence_count }} item{{ '' if control.evidence_count == 1 else 's' }}
+                {% if control.has_stale_evidence %}<span class="badge stale">Review overdue</span>{% endif %}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+
+  <p class="disclaimer">
+    Status reflects our own assessment against {{ view.framework_label }} and is
+    maintained in our internal control tracker. Evidence supporting each control
+    is held internally; counts and refresh dates are published here, the evidence
+    itself is available under NDA on request{% if contact_email %} from
+    <a class="control-link" href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% endif %}.
+    Controls not listed here have not been published.
+  </p>
+{% endblock %}

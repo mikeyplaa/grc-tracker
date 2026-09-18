@@ -1,5 +1,5 @@
 import shutil
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -20,6 +20,18 @@ from app.templating import templates
 router = APIRouter(prefix="/controls", tags=["controls"])
 
 EVIDENCE_DIR = Path("data") / "evidence"
+
+
+def _now() -> datetime:
+    """Naive UTC, matching the DateTime columns elsewhere in the schema."""
+    return datetime.now(UTC).replace(tzinfo=None)
+
+
+def _touch_public_record(control: Control) -> None:
+    """Keep the trust centre's 'last updated' honest: any admin change to a
+    published control is a change to what the public sees."""
+    if control.is_public:
+        control.published_at = _now()
 
 
 def _get_control_or_404(control_id: str, db: Session) -> Control:
@@ -55,6 +67,7 @@ def list_controls(request: Request, framework: str = "iso27001", db: Session = D
         {
             "grouped": grouped,
             "total": len(controls),
+            "published_count": sum(1 for c in controls if c.is_public),
             "framework_label": FRAMEWORK_LABELS[selected],
             "framework_tabs": _framework_tabs(framework),
         },
@@ -82,6 +95,21 @@ def update_status(control_id: str, status: str = Form(...), db: Session = Depend
         control.status = ControlStatus(status)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid status") from None
+    _touch_public_record(control)
+    db.commit()
+    return RedirectResponse(url=f"/controls/{control_id}", status_code=303)
+
+
+@router.post("/{control_id}/publish")
+def set_published(control_id: str, publish: bool = Form(...), db: Session = Depends(get_db)):
+    """Toggle whether this control appears on the public trust centre.
+
+    Publishing is per-control and explicit -- there is no bulk or implicit
+    publish anywhere in the app, so nothing reaches /trust by accident.
+    """
+    control = _get_control_or_404(control_id, db)
+    control.is_public = publish
+    control.published_at = _now() if publish else None
     db.commit()
     return RedirectResponse(url=f"/controls/{control_id}", status_code=303)
 
@@ -118,5 +146,6 @@ def add_evidence(
             review_due=review_due,
         )
     )
+    _touch_public_record(control)
     db.commit()
     return RedirectResponse(url=f"/controls/{control_id}", status_code=303)
